@@ -127,7 +127,8 @@ export async function bronniOzgartir(id: string, amal: "bekor" | "tugat"): Promi
   } else {
     if (!row.bandTugash || Date.parse(row.bandTugash) <= Date.now()) throw new BazaXatosi(409, "Bu bron allaqachon tugagan.");
     if (row.boshlanish && Date.parse(row.boshlanish) > Date.now()) throw new BazaXatosi(409, "Bron hali boshlanmagan — uni bekor qiling.");
-    await db.updateRow({ databaseId, tableId: "sorovlar", rowId: id, data: { bandTugash: hozir } });
+    // holat "tugatildi" — xona darhol bo'shaydi, bandTugash = haqiqiy tugatilgan vaqt
+    await db.updateRow({ databaseId, tableId: "sorovlar", rowId: id, data: { holat: "tugatildi", bandTugash: hozir } });
   }
 }
 
