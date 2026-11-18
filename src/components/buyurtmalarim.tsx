@@ -70,7 +70,7 @@ export function Buyurtmalarim() {
         <p className="admin-small">Hali buyurtma yo‘q. Xonani tanlab so‘rov yuboring — u shu yerda paydo bo‘ladi.</p>
       ) : (
         <div style={{ display: "grid", gap: 12 }}>
-          {royxat.map((b) => {
+          {royxat.filter((b) => !(b.rowId && hozir && !holat[b.rowId])).map((b) => {
             const h = b.rowId ? holat[b.rowId] : undefined;
             // Tasdiqlangan bron vaqti o'tib ketgan bo'lsa — "Yakunlangan"
             const yakun = h?.holat === "tasdiqlangan" && h.bandTugash && Date.parse(h.bandTugash) <= hozir;
