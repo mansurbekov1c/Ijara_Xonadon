@@ -3,16 +3,19 @@
 import { useRef, useState, type CSSProperties } from "react";
 import { ArrowUpRight, Users } from "lucide-react";
 import { formatSom } from "@/lib/hisob";
-import { xonalar, type Xona } from "@/lib/xonalar";
+import type { Xona } from "@/lib/xonalar";
+import { bandVaqti } from "@/lib/band";
+import { AvtoYangilash } from "./avto-yangilash";
 import { XonaIkonka } from "./xona-ikonka";
 import { SorovModal } from "./sorov-modal";
 
 const filtrlar = [0, 4, 6, 10, 20];
 
-export function XonalarRoyxati() {
+export function XonalarRoyxati({ xonalar, bandliklar, hozir }: { xonalar: Xona[]; bandliklar: Record<string, string>; hozir: string }) {
   const [sigim, setSigim] = useState(0);
   const [tanlangan, setTanlangan] = useState<Xona | null>(null);
   const manba = useRef<HTMLButtonElement | null>(null);
+  const joriyXona = tanlangan && (xonalar.find((xona) => xona.id === tanlangan.id) ?? { ...tanlangan, faol: false });
 
   function yopish() {
     setTanlangan(null);
@@ -21,16 +24,19 @@ export function XonalarRoyxati() {
 
   return (
     <section id="xonalar" className="rooms-section" aria-labelledby="rooms-title">
-      <div className="section-heading"><div><p className="eyebrow">SIZNING REJANGIZGA MOS</p><h2 id="rooms-title">Xonani tanlang<span className="room-count">04</span></h2></div><span className="section-caption">Har bir soat — o‘zingizniki.</span></div>
+      <AvtoYangilash />
+      <div className="section-heading"><div><p className="eyebrow">SIZNING REJANGIZGA MOS</p><h2 id="rooms-title">Xonani tanlang<span className="room-count">{String(xonalar.length).padStart(2, "0")}</span></h2></div><span className="section-caption">Har bir soat — o‘zingizniki.</span></div>
       <div className="filter-row"><span id="filter-label" className="filter-label"><Users size={16} strokeWidth={1.5} aria-hidden="true" /> Necha kishi?</span><div className="filter-chips" role="group" aria-labelledby="filter-label">{filtrlar.map((qiymat) => <button type="button" key={qiymat} className={`filter-chip ${sigim === qiymat ? "active" : ""}`} aria-pressed={sigim === qiymat} onClick={() => setSigim(qiymat)}><span className="chip-dot" />{qiymat === 0 ? "Hammasi" : `${qiymat} gacha`}</button>)}</div></div>
       <div className="room-grid">{xonalar.map((xona, index) => {
         const yetmaydi = xona.sigim < sigim;
+        const band = bandVaqti(bandliklar[xona.id], hozir);
         return <button
           type="button"
-          className={`room-card ${yetmaydi ? "insufficient" : ""}`}
+          className={`room-card ${yetmaydi ? "insufficient" : ""} ${!xona.faol ? "room-closed" : ""}`}
+          disabled={!xona.faol}
           key={xona.id}
           style={{ "--index": index } as CSSProperties}
-          aria-label={`${xona.nomi}, ${xona.sigim} kishi, ${formatSom(xona.narx)} / soat. ${yetmaydi ? "Sig‘im yetmaydi. " : ""}Tanlash`}
+          aria-label={`${xona.nomi}, ${xona.sigim} kishi, ${formatSom(xona.narx)} / soat. ${yetmaydi ? "Sig‘im yetmaydi. " : ""}${!xona.faol ? "Vaqtincha yopiq" : `${band ? `Band · ${band}. ` : ""}Tanlash`}`}
           aria-haspopup="dialog"
           onPointerMove={(event) => {
             if (event.pointerType !== "mouse") return;
@@ -45,10 +51,13 @@ export function XonalarRoyxati() {
           <span className="room-name">{xona.nomi}</span>
           <span className="room-spec"><Users size={15} strokeWidth={1.5} aria-hidden="true" />{xona.sigim} kishi<span className="spec-dot">·</span><span className="equipment">{xona.jihoz}</span></span>
           <span className="capacity-status">{yetmaydi ? "Sig‘im yetmaydi" : "1–8 soatga"}</span>
+          {!xona.faol && <span className="room-availability">Vaqtincha yopiq</span>}
+          {band && <span className="room-availability room-busy"><span aria-hidden="true" />Band · {band}</span>}
           <span className="card-bottom"><span className="room-price">{formatSom(xona.narx).replace(" so‘m", "")} <span>so‘m</span><small>/ soat</small></span><span className="primary-button card-action">Tanlash<ArrowUpRight size={16} strokeWidth={1.5} aria-hidden="true" /></span></span>
         </button>;
       })}</div>
-      {tanlangan && <SorovModal xona={tanlangan} yopish={yopish} />}
+      {!xonalar.length && <p className="empty-state">Hozircha xonalar yo‘q.</p>}
+      {joriyXona && <SorovModal xona={joriyXona} band={bandVaqti(bandliklar[joriyXona.id], hozir)} yopish={yopish} />}
     </section>
   );
 }

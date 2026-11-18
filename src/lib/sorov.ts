@@ -1,5 +1,17 @@
 export type Xatolar = Partial<Record<"xonaId" | "soat" | "ism" | "umumiy", string>>;
 
+export type AdminSorov = {
+  id: string;
+  yaratilgan: string;
+  xonaId: string;
+  xonaNomi: string;
+  ism: string;
+  soat: number;
+  jami: number;
+  holat: "kutilmoqda" | "tasdiqlangan" | "rad";
+  bandTugash: string | null;
+};
+
 export type SorovNatijasi = {
   ok: true;
   sorovId: string;

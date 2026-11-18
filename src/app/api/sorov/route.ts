@@ -1,6 +1,6 @@
 import { ismniTekshir, jamiNarx, soatniTekshir } from "@/lib/hisob";
 import type { SorovNatijasi, Xatolar } from "@/lib/sorov";
-import { xonalar } from "@/lib/xonalar";
+import { sorovniSaqlash, xonalarniOl } from "@/lib/appwrite";
 
 export async function POST(request: Request) {
   let body: unknown;
@@ -21,17 +21,18 @@ export async function POST(request: Request) {
   }
 
   const data = body as Record<string, unknown>;
-  const xona = xonalar.find((item) => item.id === data.xonaId);
+  const xona = (await xonalarniOl()).find((item) => item.id === data.xonaId);
   const soat = soatniTekshir(
     typeof data.soat === "string" || typeof data.soat === "number" ? String(data.soat) : "",
   );
   const ism = ismniTekshir(typeof data.ism === "string" ? data.ism : "");
   const xatolar: Xatolar = {};
   if (!xona) xatolar.xonaId = "Ro‘yxatdan xona tanlang.";
+  else if (!xona.faol) xatolar.xonaId = "Bu xona vaqtincha yopiq.";
   if (!soat.ok) xatolar.soat = soat.xato;
   if (!ism.ok) xatolar.ism = ism.xato;
 
-  if (!xona || !soat.ok || !ism.ok) {
+  if (!xona || !xona.faol || !soat.ok || !ism.ok) {
     return Response.json({ ok: false, xatolar }, { status: 400 });
   }
 
@@ -44,5 +45,6 @@ export async function POST(request: Request) {
     narx: xona.narx,
     jami: jamiNarx(xona.narx, soat.soat),
   };
+  result.sorovId = await sorovniSaqlash(result);
   return Response.json(result);
 }

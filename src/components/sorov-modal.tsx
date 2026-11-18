@@ -8,7 +8,7 @@ import type { Xona } from "@/lib/xonalar";
 import { XonaIkonka } from "./xona-ikonka";
 import { JamiNarx } from "./jami-narx";
 
-export function SorovModal({ xona, yopish }: { xona: Xona; yopish: () => void }) {
+export function SorovModal({ xona, band: bandVaqt, yopish }: { xona: Xona; band: string | null; yopish: () => void }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const soatInput = useRef<HTMLInputElement>(null);
   const ismInput = useRef<HTMLInputElement>(null);
@@ -59,6 +59,7 @@ export function SorovModal({ xona, yopish }: { xona: Xona; yopish: () => void })
   async function yuborish(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (band.current) return;
+    if (!xona.faol) { setXatolar({ xonaId: "Bu xona vaqtincha yopiq." }); return; }
     const ismNatija = ismniTekshir(ism);
     const errors: Xatolar = {};
     if (!tekshiruv.ok) errors.soat = tekshiruv.xato;
@@ -120,6 +121,8 @@ export function SorovModal({ xona, yopish }: { xona: Xona; yopish: () => void })
         <p className="eyebrow modal-eyebrow">XONA TAFSILOTLARI <span> / {xona.id}</span></p>
         <div className="modal-room"><XonaIkonka jihoz={xona.jihoz} /><div><h2 id="modal-title">{xona.nomi}</h2><p className="room-spec"><Users size={15} aria-hidden="true" />{xona.sigim} kishi<span className="spec-dot">·</span><span className="equipment">{xona.jihoz}</span></p></div></div>
         <p className="modal-hourly">{formatSom(xona.narx)} <span>/ soat</span></p>
+        {bandVaqt && <p className="availability-note"><span className="room-busy">Band · {bandVaqt}</span><br />Hozir band — so‘rovingiz navbatga qo‘yiladi</p>}
+        {!xona.faol && <p className="field-error" role="alert">Bu xona vaqtincha yopiq.</p>}
         <form noValidate onSubmit={yuborish} aria-busy={yuborilmoqda}>
           <div className={`form-field ${xatolar.soat ? "has-error" : ""}`}><label htmlFor="soat">Necha soatga?</label><div className="stepper"><button type="button" aria-label="Bir soat kamaytirish" onClick={() => soatniOzgartirish(-1)} disabled={yuborilmoqda || (tekshiruv.ok && tekshiruv.soat === 1)}><Minus size={18} aria-hidden="true" /></button><input id="soat" name="soat" ref={soatInput} inputMode="numeric" type="text" value={soat} onChange={(event) => { setSoat(event.target.value); xatoniTozalash("soat"); }} aria-invalid={Boolean(xatolar.soat)} aria-describedby={`soat-yordam${xatolar.soat ? " soat-xato" : ""}`} disabled={yuborilmoqda} autoComplete="off" /><button type="button" aria-label="Bir soat qo‘shish" onClick={() => soatniOzgartirish(1)} disabled={yuborilmoqda || (tekshiruv.ok && tekshiruv.soat === 8)}><Plus size={18} aria-hidden="true" /></button></div><p id="soat-yordam" className="field-help">1 dan 8 gacha butun son</p>{xatolar.soat && <p id="soat-xato" className="field-error" role="alert">{xatolar.soat}</p>}</div>
           <div className="total-panel"><div><span className="eyebrow">JAMI NARX</span><p className="total-equation">{tekshiruv.ok ? `${formatSom(xona.narx).replace(" so‘m", "")} × ${tekshiruv.soat}` : "—"}</p></div><JamiNarx qiymat={tekshiruv.ok ? jamiNarx(xona.narx, tekshiruv.soat) : null} /></div>
