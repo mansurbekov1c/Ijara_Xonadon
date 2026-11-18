@@ -23,4 +23,7 @@ export type SorovNatijasi = {
   narx: number;
   jami: number;
   boshlanish?: string;
+  rowId?: string;
 };
+
+export type BuyurtmaHolati = { id: string; holat: "kutilmoqda" | "tasdiqlangan" | "rad" | "bekor"; bandTugash: string | null };

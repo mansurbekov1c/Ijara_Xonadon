@@ -1,7 +1,7 @@
 import "server-only";
 import { Client, ID, Query, TablesDB, type Models } from "node-appwrite";
 import { bandTugashHisobla, vaqtMatni } from "./band";
-import type { AdminSorov, SorovNatijasi } from "./sorov";
+import type { AdminSorov, BuyurtmaHolati, SorovNatijasi } from "./sorov";
 import { keyingiXonaId, type YangiXona } from "./xona-tekshir";
 import { xonalar, type Xona } from "./xonalar";
 
@@ -95,10 +95,19 @@ export async function sorovniSaqlash(sorov: SorovNatijasi, telefon?: string, bos
         xonaId: sorov.xona.id, xonaNomi: sorov.xona.nomi, ism: sorov.ism, soat: sorov.soat,
         jami: sorov.jami, holat: "kutilmoqda", bandTugash: null, ...(telefon ? { telefon } : {}), ...(boshlanish ? { boshlanish } : {}),
       } });
+      sorov.rowId = row.$id;
       return `S-${row.$id.slice(-6).toUpperCase()}`;
     } catch (xato) { bazaXatosiniYoz("So‘rovni yozish; mahalliy raqam qaytariladi", xato); }
   }
   return sorov.sorovId;
+}
+
+// Mijoz "Buyurtmalarim": faqat o'zida saqlangan (taxmin qilib bo'lmaydigan) qator ID'lari bo'yicha holat
+export async function buyurtmalarHolati(ids: string[]): Promise<BuyurtmaHolati[]> {
+  if (!appwriteYoqilgan() || !ids.length) return [];
+  const natija = await baza().listRows<SorovQatori>({ databaseId, tableId: "sorovlar",
+    queries: [Query.equal("$id", ids), Query.select(["$id", "holat", "bandTugash"]), Query.limit(50)], total: false });
+  return natija.rows.map((r) => ({ id: r.$id, holat: r.holat, bandTugash: r.bandTugash ?? null }));
 }
 
 export async function adminSorovlarniOl(): Promise<AdminSorov[]> {

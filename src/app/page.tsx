@@ -1,3 +1,4 @@
+import { Buyurtmalarim } from "@/components/buyurtmalarim";
 import { NavbarHisob } from "@/components/navbar-hisob";
 import { ArrowDown, DoorOpen, ArrowUpRight } from "lucide-react";
 import { XonalarRoyxati } from "@/components/xonalar-royxati";
@@ -30,6 +31,7 @@ export default async function Home() {
         <XonalarRoyxati xonalar={xonalar} bandliklar={bandliklar} hozir={new Date().toISOString()} />
 
         <aside className="trial-note"><span className="note-icon"><DoorOpen size={17} strokeWidth={1.5} aria-hidden="true" /></span><p><strong>Bir necha qadam. Bitta qulay xona.</strong><span>Bu sinov loyihasi. Haqiqiy band qilish yoki to‘lov amalga oshirilmaydi.</span></p><span className="eyebrow trial-label">SINOV REJIMI</span></aside>
+        <Buyurtmalarim />
       </main>
 
       <footer className="site-footer container"><span>© Soatbay</span><span>Sinov loyihasi · Ma’lumotlar sun’iy</span><Link href="/admin" prefetch={false}>Admin</Link></footer>

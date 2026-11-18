@@ -1,4 +1,5 @@
 "use client";
+import { buyurtmaQosh } from "@/lib/buyurtmalar";
 import { vaqtMatni } from "@/lib/band";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
@@ -116,6 +117,7 @@ export function SorovModal({ xona, band: bandVaqt, yopish }: { xona: Xona; band:
         xatogaFokus(data.xatolar);
       } else if (response.ok && data.ok) {
         setNatija(data);
+        buyurtmaQosh({ rowId: data.rowId, sorovId: data.sorovId, xonaNomi: data.xona.nomi, soat: data.soat, jami: data.jami, boshlanish: data.boshlanish, yaratilgan: new Date().toISOString(), telefon: joriy.telefon });
       } else {
         throw new Error("So‘rov bajarilmadi");
       }
