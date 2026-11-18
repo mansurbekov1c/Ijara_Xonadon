@@ -87,12 +87,12 @@ export async function bandliklarniOl(): Promise<Record<string, string>> {
   catch (xato) { bazaXatosiniYoz("Bandlikni o‘qish", xato); return {}; }
 }
 
-export async function sorovniSaqlash(sorov: SorovNatijasi, telefon?: string): Promise<string> {
+export async function sorovniSaqlash(sorov: SorovNatijasi, telefon?: string, boshlanish?: string): Promise<string> {
   if (appwriteYoqilgan()) {
     try {
       const row = await baza().createRow({ databaseId, tableId: "sorovlar", rowId: ID.unique(), data: {
         xonaId: sorov.xona.id, xonaNomi: sorov.xona.nomi, ism: sorov.ism, soat: sorov.soat,
-        jami: sorov.jami, holat: "kutilmoqda", bandTugash: null, ...(telefon ? { telefon } : {}),
+        jami: sorov.jami, holat: "kutilmoqda", bandTugash: null, ...(telefon ? { telefon } : {}), ...(boshlanish ? { boshlanish } : {}),
       } });
       return `S-${row.$id.slice(-6).toUpperCase()}`;
     } catch (xato) { bazaXatosiniYoz("So‘rovni yozish; mahalliy raqam qaytariladi", xato); }
@@ -121,7 +121,10 @@ export async function sorovniBoshqar(id: string, amal: "tasdiqla" | "rad"): Prom
       const mavjudlar = await db.listRows<SorovQatori>({ databaseId, tableId: "sorovlar", transactionId,
         queries: [Query.equal("xonaId", row.xonaId), Query.equal("holat", "tasdiqlangan"),
           Query.greaterThan("bandTugash", hozir.toISOString()), Query.orderDesc("bandTugash"), Query.limit(1)], total: false });
-      bandTugash = bandTugashHisobla(hozir, mavjudlar.rows.map((item) => item.bandTugash), row.soat);
+      const bosh = (row as { boshlanish?: string | null }).boshlanish;
+      // Mijoz boshlanish vaqtini tanlagan bo'lsa — aynan o'sha oraliq band bo'ladi
+      bandTugash = bosh && Number.isFinite(Date.parse(bosh)) ? new Date(Date.parse(bosh) + row.soat * 3_600_000).toISOString()
+        : bandTugashHisobla(hozir, mavjudlar.rows.map((item) => item.bandTugash), row.soat);
     }
     await db.updateRow({ databaseId, tableId: "sorovlar", rowId: id, transactionId,
       data: { holat: amal === "tasdiqla" ? "tasdiqlangan" : "rad", bandTugash } });

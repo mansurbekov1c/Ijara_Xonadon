@@ -1,4 +1,4 @@
-export type Xatolar = Partial<Record<"xonaId" | "soat" | "ism" | "umumiy", string>>;
+export type Xatolar = Partial<Record<"xonaId" | "soat" | "ism" | "umumiy" | "boshlanish", string>>;
 
 export type AdminSorov = {
   id: string;
@@ -20,4 +20,5 @@ export type SorovNatijasi = {
   soat: number;
   narx: number;
   jami: number;
+  boshlanish?: string;
 };

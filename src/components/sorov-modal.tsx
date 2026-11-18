@@ -1,4 +1,5 @@
 "use client";
+import { vaqtMatni } from "@/lib/band";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ArrowRight, LoaderCircle, Minus, Plus, Users, X } from "lucide-react";
@@ -19,6 +20,12 @@ export function SorovModal({ xona, band: bandVaqt, yopish }: { xona: Xona; band:
   const [soat, setSoat] = useState("1");
   const [ism, setIsm] = useState("");
   const [familiya, setFamiliya] = useState("");
+  const [boshlanish, setBoshlanish] = useState(() => {
+    // standart: keyingi to'liq soat (brauzer vaqti)
+    const d = new Date(); d.setMinutes(0, 0, 0); d.setHours(d.getHours() + 1);
+    const p = (n: number) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:00`;
+  });
   const [telefon, setTelefon] = useState("");
   const [profil, setProfil] = useState<Profil | null>(null);
   const [profilXato, setProfilXato] = useState<ProfilXatolar>({});
@@ -100,7 +107,7 @@ export function SorovModal({ xona, band: bandVaqt, yopish }: { xona: Xona; band:
       const response = await fetch("/api/sorov", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ xonaId: xona.id, soat, ism: ismNatija.ism, telefon: joriy.telefon }),
+        body: JSON.stringify({ xonaId: xona.id, soat, ism: ismNatija.ism, telefon: joriy.telefon, boshlanish: boshlanish ? new Date(boshlanish).toISOString() : undefined }),
         signal: abort.signal,
       });
       const data: SorovNatijasi | { ok: false; xatolar: Xatolar } = await response.json();
@@ -140,7 +147,7 @@ export function SorovModal({ xona, band: bandVaqt, yopish }: { xona: Xona; band:
         <p className="eyebrow">SO‘ROV YUBORILDI</p>
         <h2 id="modal-title" ref={natijaSarlavha} tabIndex={-1}>So‘rovingiz qabul qilindi</h2>
         <p className="result-intro">So‘rovingiz tafsilotlari quyida.</p>
-        <dl className="result-table"><div><dt>Ism</dt><dd>{natija.ism}</dd></div><div><dt>Xona</dt><dd>{natija.xona.nomi}</dd></div><div><dt>Soatlar soni</dt><dd>{natija.soat} soat</dd></div><div className="result-total"><dt>Jami narx</dt><dd>{formatSom(natija.jami)}</dd></div><div><dt>So‘rov raqami</dt><dd className="request-id">{natija.sorovId}</dd></div></dl>
+        <dl className="result-table"><div><dt>Ism</dt><dd>{natija.ism}</dd></div><div><dt>Xona</dt><dd>{natija.xona.nomi}</dd></div><div><dt>Soatlar soni</dt><dd>{natija.soat} soat</dd></div>{natija.boshlanish && <div><dt>Vaqt</dt><dd>{vaqtMatni(natija.boshlanish)} – {vaqtMatni(new Date(Date.parse(natija.boshlanish) + natija.soat * 3_600_000).toISOString()).split(", ")[1]}</dd></div>}<div className="result-total"><dt>Jami narx</dt><dd>{formatSom(natija.jami)}</dd></div><div><dt>So‘rov raqami</dt><dd className="request-id">{natija.sorovId}</dd></div></dl>
         <p className="result-disclaimer">Bu band qilish so‘rovi. Haqiqiy band qilish yoki to‘lov amalga oshirilmaydi. Admin so‘rovni ko‘rib, hisobingizdagi telefon raqamiga bog‘lanadi.</p>
         <div className="modal-actions"><button type="button" className="primary-button" onClick={yopish}>Ro‘yxatga qaytish<ArrowRight size={17} aria-hidden="true" /></button><button type="button" className="secondary-button" onClick={yangiSorov}>Yangi so‘rov</button></div>
       </div> : <>
@@ -152,6 +159,7 @@ export function SorovModal({ xona, band: bandVaqt, yopish }: { xona: Xona; band:
         <form noValidate onSubmit={yuborish} aria-busy={yuborilmoqda}>
           <div className={`form-field ${xatolar.soat ? "has-error" : ""}`}><label htmlFor="soat">Necha soatga?</label><div className="stepper"><button type="button" aria-label="Bir soat kamaytirish" onClick={() => soatniOzgartirish(-1)} disabled={yuborilmoqda || (tekshiruv.ok && tekshiruv.soat === 1)}><Minus size={18} aria-hidden="true" /></button><input id="soat" name="soat" ref={soatInput} inputMode="numeric" type="text" value={soat} onChange={(event) => { setSoat(event.target.value); xatoniTozalash("soat"); }} aria-invalid={Boolean(xatolar.soat)} aria-describedby={`soat-yordam${xatolar.soat ? " soat-xato" : ""}`} disabled={yuborilmoqda} autoComplete="off" /><button type="button" aria-label="Bir soat qo‘shish" onClick={() => soatniOzgartirish(1)} disabled={yuborilmoqda || (tekshiruv.ok && tekshiruv.soat === 8)}><Plus size={18} aria-hidden="true" /></button></div><p id="soat-yordam" className="field-help">1 dan 8 gacha butun son</p>{xatolar.soat && <p id="soat-xato" className="field-error" role="alert">{xatolar.soat}</p>}</div>
           <div className="total-panel"><div><span className="eyebrow">JAMI NARX</span><p className="total-equation">{tekshiruv.ok ? `${formatSom(xona.narx).replace(" so‘m", "")} × ${tekshiruv.soat}` : "—"}</p></div><JamiNarx qiymat={tekshiruv.ok ? jamiNarx(xona.narx, tekshiruv.soat) : null} /></div>
+          <div className={`form-field ${xatolar.boshlanish ? "has-error" : ""}`}><label htmlFor="boshlanish">Boshlanish vaqti <span className="required-mark">*</span></label><input id="boshlanish" type="datetime-local" required value={boshlanish} onChange={(e) => { setBoshlanish(e.target.value); setXatolar((x) => ({ ...x, boshlanish: undefined })); }} style={{ colorScheme: "dark" }} disabled={yuborilmoqda} />{xatolar.boshlanish && <p className="field-error" role="alert">{xatolar.boshlanish}</p>}</div>
           {profil ? (
             <div className="form-field"><label>Buyurtmachi</label><div className="total-panel" style={{ marginTop: 0 }}><div><strong>{toliqIsm(profil)}</strong><p className="total-equation">{profil.telefon}</p></div><button type="button" className="secondary-button" style={{ padding: "8px 12px", fontSize: 12 }} onClick={() => profilniSaqla(null)}>Boshqa hisob</button></div></div>
           ) : (

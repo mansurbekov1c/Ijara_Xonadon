@@ -53,6 +53,16 @@ export async function POST(request: Request) {
     if (!t.ok) return Response.json({ ok: false, xatolar: { telefon: t.xato } }, { status: 400 });
     telefon = t.telefon;
   }
-  result.sorovId = await sorovniSaqlash(result, telefon);
+  // Boshlanish vaqti: kelmasa — hozir; o'tmish yoki 30 kundan uzoq bo'lmasin
+  let boshlanish = new Date().toISOString();
+  if (typeof data.boshlanish === "string" && data.boshlanish) {
+    const t = Date.parse(data.boshlanish);
+    if (!Number.isFinite(t) || t < Date.now() - 10 * 60_000 || t > Date.now() + 30 * 86_400_000) {
+      return Response.json({ ok: false, xatolar: { boshlanish: "Boshlanish vaqtini bugundan 30 kungacha tanlang." } }, { status: 400 });
+    }
+    boshlanish = new Date(t).toISOString();
+  }
+  result.boshlanish = boshlanish;
+  result.sorovId = await sorovniSaqlash(result, telefon, boshlanish);
   return Response.json(result);
 }

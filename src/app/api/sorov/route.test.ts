@@ -24,6 +24,7 @@ describe("POST /api/sorov", () => {
       soat: 2,
       narx: 70000,
       jami: 140000,
+      boshlanish: expect.any(String),
     });
   });
 
