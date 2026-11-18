@@ -10,7 +10,7 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: "Xona ijarasi — soatbay",
+  title: "Soatbay — xonalarni soatbay ijaraga olish",
   description: "Dars va kichik uchrashuvlar uchun xonani tanlang, 1–8 soat narxini hisoblang va sinov so‘rovini yuboring.",
 };
 

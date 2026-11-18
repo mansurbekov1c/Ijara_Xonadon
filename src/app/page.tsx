@@ -12,7 +12,7 @@ export default async function Home() {
   return (
     <div className="site-shell">
       <header className="site-header container">
-        <Link className="brand" href="/" aria-label="Xona ijarasi — bosh sahifa">
+        <Link className="brand" href="/" aria-label="Soatbay — bosh sahifa">
           <span className="brand-mark"><DoorOpen size={22} strokeWidth={1.5} aria-hidden="true" /></span>
           <span><strong>Soatbay</strong><span className="brand-caption">XONALARNI SOATBAY IJARA</span></span>
         </Link>
@@ -34,7 +34,7 @@ export default async function Home() {
         <Buyurtmalarim />
       </main>
 
-      <footer className="site-footer container"><span>© Soatbay</span><span>Sinov loyihasi · Ma’lumotlar sun’iy</span><Link href="/admin" prefetch={false}>Admin</Link></footer>
+      <footer className="site-footer container"><span>© Soatbay</span><span>Sinov loyihasi · Ma’lumotlar sun’iy</span><a href="/admin" target="_blank" rel="noopener">Admin</a></footer>
     </div>
   );
 }

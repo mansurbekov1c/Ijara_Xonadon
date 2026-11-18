@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { UserRound } from "lucide-react";
 import { PROFIL_HODISA, profilniOl, profilniSaqla, type Profil } from "@/lib/hisob-profil";
 
@@ -18,7 +17,7 @@ export function NavbarHisob() {
     <nav aria-label="Asosiy menyu" style={{ display: "flex", alignItems: "center", gap: 18, fontSize: 13 }}>
       <a href="#xonalar" className="header-note">Xonalar</a>
       {profil && <a href="#buyurtmalarim" className="header-note">Buyurtmalarim</a>}
-      <Link href="/admin" prefetch={false} className="header-note">Admin</Link>
+      <a href="/admin" target="_blank" rel="noopener" className="header-note">Admin</a>
       {profil ? (
         <span className="header-note" style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
           <UserRound size={15} aria-hidden="true" /> {profil.ism}
