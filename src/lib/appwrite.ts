@@ -87,12 +87,12 @@ export async function bandliklarniOl(): Promise<Record<string, string>> {
   catch (xato) { bazaXatosiniYoz("Bandlikni o‘qish", xato); return {}; }
 }
 
-export async function sorovniSaqlash(sorov: SorovNatijasi): Promise<string> {
+export async function sorovniSaqlash(sorov: SorovNatijasi, telefon?: string): Promise<string> {
   if (appwriteYoqilgan()) {
     try {
       const row = await baza().createRow({ databaseId, tableId: "sorovlar", rowId: ID.unique(), data: {
         xonaId: sorov.xona.id, xonaNomi: sorov.xona.nomi, ism: sorov.ism, soat: sorov.soat,
-        jami: sorov.jami, holat: "kutilmoqda", bandTugash: null,
+        jami: sorov.jami, holat: "kutilmoqda", bandTugash: null, ...(telefon ? { telefon } : {}),
       } });
       return `S-${row.$id.slice(-6).toUpperCase()}`;
     } catch (xato) { bazaXatosiniYoz("So‘rovni yozish; mahalliy raqam qaytariladi", xato); }

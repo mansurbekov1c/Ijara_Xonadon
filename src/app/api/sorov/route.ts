@@ -1,3 +1,4 @@
+import { telefonniTekshir } from "@/lib/hisob-profil";
 import { ismniTekshir, jamiNarx, soatniTekshir } from "@/lib/hisob";
 import type { SorovNatijasi, Xatolar } from "@/lib/sorov";
 import { sorovniSaqlash, xonalarniOl } from "@/lib/appwrite";
@@ -45,6 +46,13 @@ export async function POST(request: Request) {
     narx: xona.narx,
     jami: jamiNarx(xona.narx, soat.soat),
   };
-  result.sorovId = await sorovniSaqlash(result);
+  // Hisobdagi telefon (ixtiyoriy, bo'lsa tekshiriladi)
+  let telefon: string | undefined;
+  if (typeof data.telefon === "string" && data.telefon.trim()) {
+    const t = telefonniTekshir(data.telefon);
+    if (!t.ok) return Response.json({ ok: false, xatolar: { telefon: t.xato } }, { status: 400 });
+    telefon = t.telefon;
+  }
+  result.sorovId = await sorovniSaqlash(result, telefon);
   return Response.json(result);
 }
