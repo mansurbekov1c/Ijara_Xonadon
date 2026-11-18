@@ -6,6 +6,12 @@
 - GitHub: `mansurbekov1c/Ijara_Xonadon` (public). Vercel loyihasi `ijara-xonadon` — `main`ga push avtomatik deploy.
 - Appwrite (2-bosqich, vaqt qolsa): loyiha ID `6afd4b6f0038f578e5ca`, CLI login qilingan (foydalanuvchi o'zi).
 
+## Holat 12:50
+- Jonli: https://ijara-xonadon.vercel.app (nomi Soatbay). Admin `/admin` (parol Vercel env `ADMIN_PAROL`, foydalanuvchi o'zi kiritgan).
+- Appwrite ulangan: so'rovlar `sorovlar` jadvaliga (telefon bilan) yoziladi; admin tasdiqlasa xona "Band · HH:MM gacha".
+- Mijoz hisobi: ism, familiya, telefon — brauzer localStorage'da (parolsiz, sinov). Hakam testida: ism "Sinovchi", familiya "01".
+- Keyingi bosqich (qilinmagan): tasdiqlangan bronni bekor qilish/erta tugatish, haqiqiy auth (SMS), to'lov.
+
 ## Qarorlar va sabablari
 - Faqat biletdagi 4 xona ma'lumoti — nizom jadvaldan tashqari ma'lumotni taqiqlaydi (manzil/rasm/bino yo'q).
 - Server/baza nizomda talab qilinmaydi; Next.js API route (`/api/sorov`) server tomonda qayta tekshiradi — "zamonaviy texnologiya" bali uchun. Saqlash yo'q.
