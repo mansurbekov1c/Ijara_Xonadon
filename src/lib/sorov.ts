@@ -8,7 +8,7 @@ export type AdminSorov = {
   ism: string;
   soat: number;
   jami: number;
-  holat: "kutilmoqda" | "tasdiqlangan" | "rad" | "bekor" | "tugatildi";
+  holat: "kutilmoqda" | "tasdiqlangan" | "rad" | "bekor" | "tugatildi" | "mijoz_bekor";
   bandTugash: string | null;
   boshlanish?: string | null;
   telefon?: string | null;
@@ -26,4 +26,4 @@ export type SorovNatijasi = {
   rowId?: string;
 };
 
-export type BuyurtmaHolati = { id: string; holat: "kutilmoqda" | "tasdiqlangan" | "rad" | "bekor" | "tugatildi"; bandTugash: string | null };
+export type BuyurtmaHolati = { id: string; holat: "kutilmoqda" | "tasdiqlangan" | "rad" | "bekor" | "tugatildi" | "mijoz_bekor"; bandTugash: string | null };

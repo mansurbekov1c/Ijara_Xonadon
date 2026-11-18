@@ -8,7 +8,7 @@ import { BUYURTMA_HODISA, buyurtmalarniOl, type Buyurtma } from "@/lib/buyurtmal
 import type { BuyurtmaHolati } from "@/lib/sorov";
 
 const nomlar: Record<BuyurtmaHolati["holat"], string> = {
-  kutilmoqda: "Kutilmoqda", tasdiqlangan: "Tasdiqlangan", rad: "Rad etilgan", bekor: "Bekor qilingan", tugatildi: "Erta tugatildi",
+  kutilmoqda: "Kutilmoqda", tasdiqlangan: "Tasdiqlangan", rad: "Rad etilgan", bekor: "Bekor qilingan", tugatildi: "Erta tugatildi", mijoz_bekor: "Siz bekor qildingiz",
 };
 
 // "Buyurtmalarim" — mijoz hisobidagi so'rovlar va ularning joriy holati (20 soniyada yangilanadi)
@@ -17,6 +17,25 @@ export function Buyurtmalarim() {
   const [royxat, setRoyxat] = useState<Buyurtma[]>([]);
   const [holat, setHolat] = useState<Record<string, BuyurtmaHolati>>({});
   const [hozir, setHozir] = useState(0);
+  const [bekorXato, setBekorXato] = useState<Record<string, string>>({});
+  const [yangilash, setYangilash] = useState(0);
+  const [kutish, setKutish] = useState<string | null>(null);
+
+  async function bekorQil(b: Buyurtma) {
+    if (!b.rowId || !profil) return;
+    if (!window.confirm(`${b.xonaNomi} bronini bekor qilasizmi? Bu amalni qaytarib bo‘lmaydi.`)) return;
+    setKutish(b.rowId);
+    try {
+      const r = await fetch("/api/buyurtmalarim/bekor", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: b.rowId, telefon: profil.telefon }) });
+      const d = (await r.json()) as { ok: boolean; xato?: string };
+      setBekorXato((x) => ({ ...x, [b.rowId!]: d.ok ? "" : d.xato ?? "Bekor qilinmadi." }));
+      setYangilash((n) => n + 1);
+    } catch {
+      setBekorXato((x) => ({ ...x, [b.rowId!]: "Server bilan bog‘lanib bo‘lmadi." }));
+    } finally {
+      setKutish(null);
+    }
+  }
 
   useEffect(() => {
     const yukla = () => {
@@ -40,7 +59,7 @@ export function Buyurtmalarim() {
     ol();
     const t = setInterval(ol, 20_000);
     return () => { tirik = false; clearInterval(t); };
-  }, [royxat]);
+  }, [royxat, yangilash]);
 
   if (!profil) return null;
   return (
@@ -69,9 +88,16 @@ export function Buyurtmalarim() {
                   {h?.holat === "bekor" && <p className="admin-small" style={{ color: "#ff5a5a" }}>Admin bronni bekor qildi. Savollar bo‘lsa, admin siz bilan telefon orqali bog‘lanadi.</p>}
                   {h?.holat === "tugatildi" && h.bandTugash && <p className="admin-small" style={{ color: "#ffb35a" }}>Admin broningizni erta tugatdi: <strong>{vaqtMatni(h.bandTugash)}</strong> da. Xona bo‘shatildi.</p>}
                   {h?.holat === "tasdiqlangan" && h.bandTugash && !yakun && <p className="admin-small" style={{ color: "#3ddc97" }}>Xona {vaqtMatni(h.bandTugash)} gacha siz uchun band.</p>}
+                  {h?.holat === "mijoz_bekor" && <p className="admin-small">Bron siz tomondan bekor qilindi. Xona boshqa mijozlar uchun bo‘shatildi.</p>}
                   {h?.holat === "rad" && <p className="admin-small" style={{ color: "#ff5a5a" }}>So‘rov rad etildi. Boshqa vaqt yoki xonani tanlab ko‘ring.</p>}
                 </div>
-                <span className={`status-badge ${cls}`}>{nom}</span>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8 }}>
+                  <span className={`status-badge ${cls}`}>{nom}</span>
+                  {b.rowId && (h?.holat === "kutilmoqda" || (h?.holat === "tasdiqlangan" && b.boshlanish && Date.parse(b.boshlanish) > hozir)) && (
+                    <button type="button" className="secondary-button danger-button" style={{ padding: "6px 12px", fontSize: 12 }} disabled={kutish === b.rowId} onClick={() => void bekorQil(b)}>{kutish === b.rowId ? "…" : "Bekor qilish"}</button>
+                  )}
+                  {b.rowId && bekorXato[b.rowId] && <p className="admin-small" role="alert" style={{ color: "#ff5a5a", maxWidth: 220, textAlign: "right" }}>{bekorXato[b.rowId]}</p>}
+                </div>
               </article>
             );
           })}

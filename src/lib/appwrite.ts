@@ -116,6 +116,18 @@ export async function adminSorovlarniOl(): Promise<AdminSorov[]> {
   return natija.rows.map(sorovOl);
 }
 
+// Mijoz o'z bronini bekor qiladi: egaligi telefon bilan tekshiriladi; boshlangan bronni bekor qilib bo'lmaydi
+export async function mijozBekorQiladi(id: string, telefon: string): Promise<void> {
+  const db = baza();
+  const row = await db.getRow<SorovQatori>({ databaseId, tableId: "sorovlar", rowId: id });
+  if (!row.telefon || row.telefon !== telefon) throw new BazaXatosi(403, "Bu bron sizning hisobingizga tegishli emas.");
+  if (row.holat !== "kutilmoqda" && row.holat !== "tasdiqlangan") throw new BazaXatosi(409, "Bu bronni bekor qilib bo‘lmaydi.");
+  if (row.holat === "tasdiqlangan" && (!row.boshlanish || Date.parse(row.boshlanish) <= Date.now())) {
+    throw new BazaXatosi(409, "Bron boshlangan — bekor qilish uchun admin bilan bog‘laning.");
+  }
+  await db.updateRow({ databaseId, tableId: "sorovlar", rowId: id, data: { holat: "mijoz_bekor", bandTugash: null } });
+}
+
 // Tasdiqlangan bronni bekor qilish (mijoz kelmadi) yoki erta tugatish (erta ketdi)
 export async function bronniOzgartir(id: string, amal: "bekor" | "tugat"): Promise<void> {
   const db = baza();

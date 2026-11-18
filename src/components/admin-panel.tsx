@@ -11,7 +11,7 @@ import { xonaniTekshir, type XonaXatolari } from "@/lib/xona-tekshir";
 import { AvtoYangilash } from "./avto-yangilash";
 import { XonaIkonka } from "./xona-ikonka";
 
-const holatlar = { kutilmoqda: "Kutilmoqda", tasdiqlangan: "Tasdiqlangan", rad: "Rad etilgan", bekor: "Bekor qilingan", tugatildi: "Erta tugatildi" };
+const holatlar = { kutilmoqda: "Kutilmoqda", tasdiqlangan: "Tasdiqlangan", rad: "Rad etilgan", bekor: "Bekor qilingan", tugatildi: "Erta tugatildi", mijoz_bekor: "Mijoz bekor qildi" };
 const filtrlar = [{ id: "hammasi", nomi: "Hammasi" }, { id: "kutilmoqda", nomi: "Kutilmoqda" }, { id: "tasdiqlangan", nomi: "Tasdiqlangan" }, { id: "rad", nomi: "Rad" }] as const;
 const boshXona = { nomi: "", sigim: "", jihoz: "", narx: "" };
 const maydonlar = [
