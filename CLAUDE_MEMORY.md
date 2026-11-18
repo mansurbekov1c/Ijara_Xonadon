@@ -10,7 +10,9 @@
 - Jonli: https://ijara-xonadon.vercel.app (nomi Soatbay). Admin `/admin` (parol Vercel env `ADMIN_PAROL`, foydalanuvchi o'zi kiritgan).
 - Appwrite ulangan: so'rovlar `sorovlar` jadvaliga (telefon bilan) yoziladi; admin tasdiqlasa xona "Band · HH:MM gacha".
 - Mijoz hisobi: ism, familiya, telefon — brauzer localStorage'da (parolsiz, sinov). Hakam testida: ism "Sinovchi", familiya "01".
-- Keyingi bosqich (qilinmagan): tasdiqlangan bronni bekor qilish/erta tugatish, haqiqiy auth (SMS), to'lov.
+- 13:02: bron boshlanish vaqti (forma+server+baza), admin: bron vaqti/telefon, Bekor qilish/Erta tugatish (confirm ogohlantirish), ustma-ust bron 409. Holat enum'ga `bekor` qo'shildi.
+- Mijoz "Buyurtmalarim": so'rov rowId'lari localStorage'da, holat `/api/buyurtmalarim?ids=` dan har 20 s.
+- Keyingi bosqich (qilinmagan): haqiqiy auth (SMS), to'lov, mijoz tomonidan bekor qilish.
 
 ## Qarorlar va sabablari
 - Faqat biletdagi 4 xona ma'lumoti — nizom jadvaldan tashqari ma'lumotni taqiqlaydi (manzil/rasm/bino yo'q).
