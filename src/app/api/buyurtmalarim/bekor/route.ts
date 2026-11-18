@@ -13,6 +13,7 @@ export async function POST(request: Request) {
     return Response.json({ ok: true });
   } catch (xato) {
     if (xato instanceof BazaXatosi) return Response.json({ ok: false, xato: xato.message }, { status: xato.status });
+    if (xato && typeof xato === "object" && "code" in xato && xato.code === 404) return Response.json({ ok: false, xato: "Bron topilmadi." }, { status: 404 });
     return Response.json({ ok: false, xato: "Server bilan bog‘lanib bo‘lmadi." }, { status: 503 });
   }
 }
