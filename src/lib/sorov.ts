@@ -8,8 +8,10 @@ export type AdminSorov = {
   ism: string;
   soat: number;
   jami: number;
-  holat: "kutilmoqda" | "tasdiqlangan" | "rad";
+  holat: "kutilmoqda" | "tasdiqlangan" | "rad" | "bekor";
   bandTugash: string | null;
+  boshlanish?: string | null;
+  telefon?: string | null;
 };
 
 export type SorovNatijasi = {

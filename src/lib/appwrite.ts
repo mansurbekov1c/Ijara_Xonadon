@@ -1,6 +1,6 @@
 import "server-only";
 import { Client, ID, Query, TablesDB, type Models } from "node-appwrite";
-import { bandTugashHisobla } from "./band";
+import { bandTugashHisobla, vaqtMatni } from "./band";
 import type { AdminSorov, SorovNatijasi } from "./sorov";
 import { keyingiXonaId, type YangiXona } from "./xona-tekshir";
 import { xonalar, type Xona } from "./xonalar";
@@ -52,7 +52,8 @@ function xonaOl(row: XonaQatori): Xona {
 
 function sorovOl(row: SorovQatori): AdminSorov {
   return { id: row.$id, yaratilgan: row.$createdAt, xonaId: row.xonaId, xonaNomi: row.xonaNomi,
-    ism: row.ism, soat: row.soat, jami: row.jami, holat: row.holat, bandTugash: row.bandTugash ?? null };
+    ism: row.ism, soat: row.soat, jami: row.jami, holat: row.holat, bandTugash: row.bandTugash ?? null,
+    boshlanish: row.boshlanish ?? null, telefon: row.telefon ?? null };
 }
 
 export async function adminXonalarniOl(): Promise<Xona[]> {
@@ -106,6 +107,21 @@ export async function adminSorovlarniOl(): Promise<AdminSorov[]> {
   return natija.rows.map(sorovOl);
 }
 
+// Tasdiqlangan bronni bekor qilish (mijoz kelmadi) yoki erta tugatish (erta ketdi)
+export async function bronniOzgartir(id: string, amal: "bekor" | "tugat"): Promise<void> {
+  const db = baza();
+  const row = await db.getRow<SorovQatori>({ databaseId, tableId: "sorovlar", rowId: id });
+  if (row.holat !== "tasdiqlangan") throw new BazaXatosi(409, "Faqat tasdiqlangan bronni o‘zgartirish mumkin.");
+  const hozir = new Date().toISOString();
+  if (amal === "bekor") {
+    await db.updateRow({ databaseId, tableId: "sorovlar", rowId: id, data: { holat: "bekor", bandTugash: null } });
+  } else {
+    if (!row.bandTugash || Date.parse(row.bandTugash) <= Date.now()) throw new BazaXatosi(409, "Bu bron allaqachon tugagan.");
+    if (row.boshlanish && Date.parse(row.boshlanish) > Date.now()) throw new BazaXatosi(409, "Bron hali boshlanmagan — uni bekor qiling.");
+    await db.updateRow({ databaseId, tableId: "sorovlar", rowId: id, data: { bandTugash: hozir } });
+  }
+}
+
 export async function sorovniBoshqar(id: string, amal: "tasdiqla" | "rad"): Promise<void> {
   const db = baza();
   const transactionId = (await db.createTransaction({ ttl: 60 })).$id;
@@ -121,10 +137,25 @@ export async function sorovniBoshqar(id: string, amal: "tasdiqla" | "rad"): Prom
       const mavjudlar = await db.listRows<SorovQatori>({ databaseId, tableId: "sorovlar", transactionId,
         queries: [Query.equal("xonaId", row.xonaId), Query.equal("holat", "tasdiqlangan"),
           Query.greaterThan("bandTugash", hozir.toISOString()), Query.orderDesc("bandTugash"), Query.limit(1)], total: false });
-      const bosh = (row as { boshlanish?: string | null }).boshlanish;
+      const bosh = row.boshlanish;
       // Mijoz boshlanish vaqtini tanlagan bo'lsa — aynan o'sha oraliq band bo'ladi
-      bandTugash = bosh && Number.isFinite(Date.parse(bosh)) ? new Date(Date.parse(bosh) + row.soat * 3_600_000).toISOString()
-        : bandTugashHisobla(hozir, mavjudlar.rows.map((item) => item.bandTugash), row.soat);
+      if (bosh && Number.isFinite(Date.parse(bosh))) {
+        const b = Date.parse(bosh), t = b + row.soat * 3_600_000;
+        // Ustma-ust bronni tekshirish: shu xonaning tasdiqlangan oraliqlari bilan kesishmasin
+        const band = await db.listRows<SorovQatori>({ databaseId, tableId: "sorovlar", transactionId,
+          queries: [Query.equal("xonaId", row.xonaId), Query.equal("holat", "tasdiqlangan"),
+            Query.greaterThan("bandTugash", new Date(b).toISOString()), Query.limit(100)], total: false });
+        const tuqnash = band.rows.find((x) => {
+          if (!x.bandTugash) return false;
+          const xt = Date.parse(x.bandTugash);
+          const xb = x.boshlanish ? Date.parse(x.boshlanish) : xt - x.soat * 3_600_000;
+          return xb < t && xt > b;
+        });
+        if (tuqnash) throw new BazaXatosi(409, `Bu vaqt band: ${tuqnash.ism} (${vaqtMatni(tuqnash.boshlanish ?? tuqnash.bandTugash!)} — ${vaqtMatni(tuqnash.bandTugash!)}).`);
+        bandTugash = new Date(t).toISOString();
+      } else {
+        bandTugash = bandTugashHisobla(hozir, mavjudlar.rows.map((item) => item.bandTugash), row.soat);
+      }
     }
     await db.updateRow({ databaseId, tableId: "sorovlar", rowId: id, transactionId,
       data: { holat: amal === "tasdiqla" ? "tasdiqlangan" : "rad", bandTugash } });
